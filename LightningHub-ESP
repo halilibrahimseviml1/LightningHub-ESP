@@ -1,0 +1,434 @@
+-- ======================= STABİL VE SORUNSUZ ESP (V11) - FUTURİSTİK PANEL =======================
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local Camera = workspace.CurrentCamera
+
+-- ======================= AYARLAR =======================
+local Settings = {
+    enabled = true,
+    box = true,
+    name = true,
+    health = true,
+    teamColor = true,
+    distance = true,
+    chams = false,
+    maxDistance = 2000,
+    filter = "All", -- "All", "Team", "Enemy"
+    keybind = Enum.KeyCode.F
+}
+
+-- ======================= FUTURİSTİK ARAYÜZ =======================
+if PlayerGui:FindFirstChild("LightningESPGui") then
+    PlayerGui.LightningESPGui:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "LightningESPGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
+
+-- Ana panel
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 260, 0, 390)
+MainFrame.Position = UDim2.new(0.05, 0, 0.05, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 28)
+MainFrame.BackgroundTransparency = 0.15
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+-- Gölge
+local Shadow = Instance.new("Frame")
+Shadow.Size = UDim2.new(1, 6, 1, 6)
+Shadow.Position = UDim2.new(0, -3, 0, -3)
+Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.BackgroundTransparency = 0.5
+Shadow.BorderSizePixel = 0
+Shadow.Parent = MainFrame
+
+-- Köşe yuvarlama
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
+
+-- Neon kenarlık
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(0, 180, 255)
+MainStroke.Thickness = 1.5
+MainStroke.Transparency = 0.6
+MainStroke.Parent = MainFrame
+
+-- Başlık çubuğu
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 36)
+TitleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = TitleBar
+
+local TitleGradient = Instance.new("UIGradient")
+TitleGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 150, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 0, 255))
+})
+TitleGradient.Parent = TitleBar
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, -80, 1, 0)
+TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "⚡ LIGHTNING HUB"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 16
+TitleLabel.TextScaled = true
+TitleLabel.Parent = TitleBar
+
+-- Butonlar için konteyner (sağda)
+local ButtonContainer = Instance.new("Frame")
+ButtonContainer.Size = UDim2.new(0, 60, 1, 0)
+ButtonContainer.Position = UDim2.new(1, -60, 0, 0)
+ButtonContainer.BackgroundTransparency = 1
+ButtonContainer.Parent = TitleBar
+
+-- Minimize butonu
+local MinBtn = Instance.new("TextButton")
+MinBtn.Size = UDim2.new(0, 28, 0, 28)
+MinBtn.Position = UDim2.new(0, 0, 0, 4)
+MinBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+MinBtn.BackgroundTransparency = 0.3
+MinBtn.BorderSizePixel = 0
+MinBtn.Text = "−"
+MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinBtn.TextSize = 18
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.Parent = ButtonContainer
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(1, 0)
+MinCorner.Parent = MinBtn
+
+-- Kapatma butonu
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+CloseBtn.Position = UDim2.new(1, -28, 0, 4)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+CloseBtn.BackgroundTransparency = 0.3
+CloseBtn.BorderSizePixel = 0
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 16
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Parent = ButtonContainer
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(1, 0)
+CloseCorner.Parent = CloseBtn
+
+-- Aç/Kapa butonu
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(1, -20, 0, 34)
+ToggleBtn.Position = UDim2.new(0, 10, 0, 44)
+ToggleBtn.BackgroundColor3 = Settings.enabled and Color3.fromRGB(0, 200, 80) or Color3.fromRGB(200, 40, 40)
+ToggleBtn.BorderSizePixel = 0
+ToggleBtn.Text = Settings.enabled and "⚡ ESP: ON" or "⚡ ESP: OFF"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.TextSize = 14
+ToggleBtn.Parent = MainFrame
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 8)
+ToggleCorner.Parent = ToggleBtn
+
+local ToggleGlow = Instance.new("UIStroke")
+ToggleGlow.Color = Color3.fromRGB(0, 255, 200)
+ToggleGlow.Thickness = 1.5
+ToggleGlow.Transparency = 0.7
+ToggleGlow.Parent = ToggleBtn
+
+-- Kaydırma alanı
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Size = UDim2.new(1, -20, 1, -140)
+ScrollFrame.Position = UDim2.new(0, 10, 0, 86)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollFrame.ScrollBarThickness = 3
+ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 180, 255)
+ScrollFrame.Parent = MainFrame
+
+local UIList = Instance.new("UIListLayout")
+UIList.Padding = UDim.new(0, 6)
+UIList.Parent = ScrollFrame
+
+-- Alt bilgi çubuğu
+local BottomFrame = Instance.new("Frame")
+BottomFrame.Size = UDim2.new(1, 0, 0, 40)
+BottomFrame.Position = UDim2.new(0, 0, 1, -40)
+BottomFrame.BackgroundTransparency = 1
+BottomFrame.Parent = MainFrame
+
+local BottomLeftLabel = Instance.new("TextLabel")
+BottomLeftLabel.Size = UDim2.new(0.7, 0, 1, 0)
+BottomLeftLabel.Position = UDim2.new(0, 5, 0, 0)
+BottomLeftLabel.BackgroundTransparency = 1
+BottomLeftLabel.Text = "prepared by halilibrahimseviml1"
+BottomLeftLabel.TextColor3 = Color3.fromRGB(150, 150, 180)
+BottomLeftLabel.TextSize = 11
+BottomLeftLabel.Font = Enum.Font.Gotham
+BottomLeftLabel.TextXAlignment = Enum.TextXAlignment.Left
+BottomLeftLabel.TextYAlignment = Enum.TextYAlignment.Center
+BottomLeftLabel.Parent = BottomFrame
+
+local BottomRightLabel = Instance.new("TextLabel")
+BottomRightLabel.Size = UDim2.new(0.3, 0, 1, 0)
+BottomRightLabel.Position = UDim2.new(0.7, 0, 0, 0)
+BottomRightLabel.BackgroundTransparency = 1
+BottomRightLabel.Text = "for prison life"
+BottomRightLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+BottomRightLabel.TextSize = 11
+BottomRightLabel.Font = Enum.Font.GothamBold
+BottomRightLabel.TextXAlignment = Enum.TextXAlignment.Right
+BottomRightLabel.TextYAlignment = Enum.TextYAlignment.Center
+BottomRightLabel.Parent = BottomFrame
+
+-- Arayüz Elemanları (İngilizce)
+local function addToggle(text, key)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 28)
+    btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(0, 180, 80) or Color3.fromRGB(140, 30, 30)
+    btn.BorderSizePixel = 0
+    btn.Text = text .. ": " .. (Settings[key] and "ON" or "OFF")
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 13
+    btn.Parent = ScrollFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = btn
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(0, 200, 255)
+    stroke.Thickness = 1
+    stroke.Transparency = 0.5
+    stroke.Parent = btn
+    
+    btn.MouseButton1Click:Connect(function()
+        Settings[key] = not Settings[key]
+        btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(0, 180, 80) or Color3.fromRGB(140, 30, 30)
+        btn.Text = text .. ": " .. (Settings[key] and "ON" or "OFF")
+    end)
+end
+
+addToggle("Box ESP", "box")
+addToggle("Show Name", "name")
+addToggle("Show Health", "health")
+addToggle("Team Color", "teamColor")
+addToggle("Show Distance", "distance")
+addToggle("Chams (Glow)", "chams")
+
+-- Canvas güncelleme
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIList.AbsoluteContentSize.Y + 20)
+
+-- ======================= MINIMIZE FONKSİYONU =======================
+local minimizedButton = nil
+
+local function createMinimizedButton()
+    if minimizedButton then return end
+    minimizedButton = Instance.new("TextButton")
+    minimizedButton.Size = UDim2.new(0, 40, 0, 40)
+    minimizedButton.Position = UDim2.new(1, -50, 0, 10)
+    minimizedButton.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+    minimizedButton.BorderSizePixel = 0
+    minimizedButton.Text = "⚡"
+    minimizedButton.TextColor3 = Color3.fromRGB(0, 200, 255)
+    minimizedButton.TextSize = 24
+    minimizedButton.Font = Enum.Font.GothamBold
+    minimizedButton.Parent = ScreenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = minimizedButton
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(0, 180, 255)
+    stroke.Thickness = 1.5
+    stroke.Transparency = 0.5
+    stroke.Parent = minimizedButton
+    
+    minimizedButton.MouseButton1Click:Connect(function()
+        MainFrame.Visible = true
+        if minimizedButton then
+            minimizedButton:Destroy()
+            minimizedButton = nil
+        end
+    end)
+end
+
+MinBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    createMinimizedButton()
+end)
+
+-- ======================= ESP MOTORU (DEĞİŞMEDİ) =======================
+local espCache = {}
+
+local function removeESP(player)
+    if espCache[player] then
+        if espCache[player].folder then
+            espCache[player].folder:Destroy()
+        end
+        espCache[player] = nil
+    end
+end
+
+local function createESP(player)
+    removeESP(player)
+    
+    local folder = Instance.new("Folder")
+    folder.Name = "ESP_" .. player.Name
+    folder.Parent = workspace
+    
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "ESPHighlight"
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.Parent = folder
+    
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "ESPBillboard"
+    billboard.Size = UDim2.new(0, 150, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = folder
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Name = "ESPText"
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextSize = 12
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.TextWrapped = true
+    textLabel.Parent = billboard
+    
+    espCache[player] = {
+        folder = folder,
+        highlight = highlight,
+        billboard = billboard,
+        textLabel = textLabel
+    }
+end
+
+RunService.RenderStepped:Connect(function()
+    if not Settings.enabled then
+        for _, data in pairs(espCache) do
+            if data.folder then data.folder.Parent = nil end
+        end
+        return
+    end
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local char = player.Character
+            local humRootPart = char and char:FindFirstChild("HumanoidRootPart")
+            local humanoid = char and char:FindFirstChild("Humanoid")
+            local head = char and char:FindFirstChild("Head")
+            
+            if char and humRootPart and humanoid and head and humanoid.Health > 0 then
+                local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                local dist = myRoot and (myRoot.Position - humRootPart.Position).Magnitude or 0
+                
+                if dist <= Settings.maxDistance then
+                    local showThis = true
+                    if Settings.filter == "Team" and player.Team ~= LocalPlayer.Team then showThis = false end
+                    if Settings.filter == "Enemy" and player.Team == LocalPlayer.Team and player.Team ~= nil then showThis = false end
+                    
+                    if showThis then
+                        if not espCache[player] or not espCache[player].folder or espCache[player].folder.Parent ~= workspace then
+                            createESP(player)
+                        end
+                        
+                        local cache = espCache[player]
+                        cache.folder.Parent = workspace
+                        cache.highlight.Adornee = char
+                        cache.billboard.Adornee = head
+                        
+                        local col = Color3.fromRGB(255, 255, 0)
+                        if Settings.teamColor and player.Team and LocalPlayer.Team then
+                            if player.Team == LocalPlayer.Team then
+                                col = Color3.fromRGB(0, 255, 0)
+                            else
+                                col = Color3.fromRGB(255, 0, 0)
+                            end
+                        end
+                        
+                        cache.highlight.FillColor = col
+                        cache.highlight.OutlineColor = col
+                        cache.highlight.Enabled = Settings.box
+                        
+                        if Settings.chams then
+                            cache.highlight.FillTransparency = 0.3
+                        else
+                            cache.highlight.FillTransparency = 1
+                        end
+                        
+                        local textParts = {}
+                        if Settings.name then table.insert(textParts, player.Name) end
+                        if Settings.health then table.insert(textParts, "HP: " .. math.floor(humanoid.Health)) end
+                        if Settings.distance then table.insert(textParts, math.floor(dist) .. "m") end
+                        
+                        cache.textLabel.Text = table.concat(textParts, "\n")
+                        cache.billboard.Enabled = (Settings.name or Settings.health or Settings.distance)
+                    else
+                        removeESP(player)
+                    end
+                else
+                    removeESP(player)
+                end
+            else
+                removeESP(player)
+            end
+        end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    removeESP(player)
+end)
+
+-- Buton Kontrolleri
+ToggleBtn.MouseButton1Click:Connect(function()
+    Settings.enabled = not Settings.enabled
+    ToggleBtn.Text = Settings.enabled and "⚡ ESP: ON" or "⚡ ESP: OFF"
+    ToggleBtn.BackgroundColor3 = Settings.enabled and Color3.fromRGB(0, 200, 80) or Color3.fromRGB(200, 40, 40)
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    Settings.enabled = false
+    for _, player in ipairs(Players:GetPlayers()) do
+        removeESP(player)
+    end
+    ScreenGui:Destroy()
+end)
+
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Settings.keybind then
+        Settings.enabled = not Settings.enabled
+        ToggleBtn.Text = Settings.enabled and "⚡ ESP: ON" or "⚡ ESP: OFF"
+        ToggleBtn.BackgroundColor3 = Settings.enabled and Color3.fromRGB(0, 200, 80) or Color3.fromRGB(200, 40, 40)
+    end
+end)
+
+print("✅ LightningHub Futuristic ESP Successfully Loaded!")
